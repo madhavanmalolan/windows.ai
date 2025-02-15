@@ -21,97 +21,8 @@ export default function Window({
   onFocus,
   onClose
 }) {
-  const [position, setPosition] = useState(initialPosition)
-  const [size, setSize] = useState(initialSize)
-  const [isDragging, setIsDragging] = useState(false)
-  const [isResizing, setIsResizing] = useState(false)
-  const [resizeDirection, setResizeDirection] = useState(null)
   const windowRef = useRef(null)
-  const dragStart = useRef({ x: 0, y: 0 })
-  const initialSizeRef = useRef({ width: 0, height: 0 })
 
-  const handleMouseDown = (e, action, direction = null) => {
-    e.preventDefault(); // Prevent text selection during drag
-    if (action === 'drag') {
-      setIsDragging(true)
-      dragStart.current = { 
-        x: e.clientX - position.x, 
-        y: e.clientY - position.y 
-      }
-    } else if (action === 'resize') {
-      setIsResizing(true)
-      setResizeDirection(direction)
-      dragStart.current = { x: e.clientX, y: e.clientY }
-      initialSizeRef.current = { width: size.width, height: size.height }
-    }
-  }
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (!isDragging && !isResizing) return;
-
-      if (isDragging) {
-        const newPosition = {
-          x: e.clientX - dragStart.current.x,
-          y: e.clientY - dragStart.current.y
-        }
-        setPosition(newPosition)
-      } else if (isResizing) {
-        const dx = e.clientX - dragStart.current.x
-        const dy = e.clientY - dragStart.current.y
-        
-        const newSize = { ...size }
-        const newPosition = { ...position }
-        
-        if (resizeDirection.includes('e')) {
-          newSize.width = initialSizeRef.current.width + dx
-        }
-        if (resizeDirection.includes('w')) {
-          const newWidth = initialSizeRef.current.width - dx
-          if (newWidth >= 300) {  // Only update if we're above minimum size
-            newSize.width = newWidth
-            newPosition.x = e.clientX
-          }
-        }
-        if (resizeDirection.includes('s')) {
-          newSize.height = initialSizeRef.current.height + dy
-        }
-        if (resizeDirection.includes('n')) {
-          const newHeight = initialSizeRef.current.height - dy
-          if (newHeight >= 400) {  // Only update if we're above minimum size
-            newSize.height = newHeight
-            newPosition.y = e.clientY
-          }
-        }
-        
-        // Enforce minimum size
-        newSize.width = Math.max(300, newSize.width)
-        newSize.height = Math.max(400, newSize.height)
-        
-        setSize(newSize)
-        setPosition(newPosition)
-      }
-    }
-
-    const handleMouseUp = () => {
-      if ((isDragging || isResizing) && onPositionChange) {
-        onPositionChange(position, size)
-      }
-      setIsDragging(false)
-      setIsResizing(false)
-    }
-
-    // Only add listeners if we're dragging or resizing
-    if (isDragging || isResizing) {
-      window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('mouseup', handleMouseUp)
-
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove)
-        window.removeEventListener('mouseup', handleMouseUp)
-      }
-    }
-  }, [isDragging, isResizing, position, size, resizeDirection, onPositionChange])
 
   return (
     <div 
@@ -178,15 +89,6 @@ export default function Window({
         )}
       </div>
 
-      {/* Resize Handles */}
-      <div className="absolute top-0 left-0 right-0 h-1 cursor-n-resize" onMouseDown={(e) => handleMouseDown(e, 'resize', 'n')} />
-      <div className="absolute bottom-0 left-0 right-0 h-1 cursor-s-resize" onMouseDown={(e) => handleMouseDown(e, 'resize', 's')} />
-      <div className="absolute left-0 top-0 bottom-0 w-1 cursor-w-resize" onMouseDown={(e) => handleMouseDown(e, 'resize', 'w')} />
-      <div className="absolute right-0 top-0 bottom-0 w-1 cursor-e-resize" onMouseDown={(e) => handleMouseDown(e, 'resize', 'e')} />
-      <div className="absolute top-0 left-0 w-2 h-2 cursor-nw-resize" onMouseDown={(e) => handleMouseDown(e, 'resize', 'nw')} />
-      <div className="absolute top-0 right-0 w-2 h-2 cursor-ne-resize" onMouseDown={(e) => handleMouseDown(e, 'resize', 'ne')} />
-      <div className="absolute bottom-0 left-0 w-2 h-2 cursor-sw-resize" onMouseDown={(e) => handleMouseDown(e, 'resize', 'sw')} />
-      <div className="absolute bottom-0 right-0 w-2 h-2 cursor-se-resize" onMouseDown={(e) => handleMouseDown(e, 'resize', 'se')} />
     </div>
   )
 } 

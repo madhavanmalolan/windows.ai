@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-export default function FloatingActionButton({ onNewChat }) {
+export default function FloatingActionButton({ onNewChat, onNewWorkspace }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -11,7 +11,7 @@ export default function FloatingActionButton({ onNewChat }) {
       {isOpen && (
         <>
           <button 
-            className="bg-white hover:bg-gray-50 text-gray-800 rounded-full p-4 shadow-lg transition-all duration-200 flex items-center gap-2 z-40 absolute bottom-20 right-0 min-w-[160px] justify-center"
+            className="bg-white hover:bg-gray-50 text-gray-800 rounded-full p-4 shadow-lg transition-all duration-200 flex items-center gap-2 z-40 absolute bottom-20 right-0 min-w-[320px] justify-center"
             onClick={() => {
               onNewChat();
               setIsOpen(false);
@@ -24,7 +24,20 @@ export default function FloatingActionButton({ onNewChat }) {
           </button>
           
           <button 
-            className="bg-white hover:bg-gray-50 text-gray-800 rounded-full p-4 shadow-lg transition-all duration-200 flex items-center gap-2 z-40 absolute bottom-36 right-0 min-w-[160px] justify-center"
+            className="bg-white hover:bg-gray-50 text-gray-800 rounded-full p-4 shadow-lg transition-all duration-200 flex items-center gap-2 z-40 absolute bottom-36 right-0 min-w-[320px] justify-center"
+            onClick={() => {
+              onNewWorkspace();
+              setIsOpen(false);
+            }}
+          >
+            <span className="text-sm">New Workspace</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </button>
+          
+          <button 
+            className="bg-white hover:bg-gray-50 text-gray-800 rounded-full p-4 shadow-lg transition-all duration-200 flex items-center gap-2 z-40 absolute bottom-52 right-0 min-w-[320px] justify-center"
             onClick={() => {
               alert("Creating new app...");
               setIsOpen(false);

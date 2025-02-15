@@ -15,6 +15,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
     const lastMessageRef = useRef(null)
     const textareaRef = useRef(null)
     const messagesContainerRef = useRef(null)
+    const prevMessageLengthRef = useRef(windowData.messages.length);
 
     // Load system settings on mount
     useEffect(() => {
@@ -24,13 +25,6 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
         }
     }, []);
 
-    // Update windowData when messages change
-    useEffect(() => {
-        onWindowDataChange({
-            ...windowData,
-            messages: chatMessages
-        });
-    }, [chatMessages]);
 
     // Load messages from windowData when it changes
     useEffect(() => {
@@ -85,6 +79,11 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
         if (lastMessageRef.current) {
             lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+        onWindowDataChange({
+            ...windowData,
+            messages: chatMessages
+        });
+
     }, [chatMessages]);
 
     // Scroll to absolute bottom on mount if flag is set
@@ -93,6 +92,47 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
             messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
         }
     }, []); // Only run on mount
+
+    // Scroll handler
+    const scrollToLastMessage = () => {
+        if (lastMessageRef.current && messagesContainerRef.current) {
+            const container = messagesContainerRef.current;
+            const lastMessage = lastMessageRef.current;
+            
+            // Get the top position of the last message relative to its container
+            const containerRect = container.getBoundingClientRect();
+            const messageRect = lastMessage.getBoundingClientRect();
+            const relativeTop = messageRect.top - containerRect.top;
+            
+            // Scroll the container
+            container.scrollTop = container.scrollTop + relativeTop;
+        }
+    };
+
+    // Scroll when new messages are added
+    useEffect(() => {
+        const currentLength = windowData.messages.length;
+        
+        // Check if messages were added
+        if (currentLength > prevMessageLengthRef.current) {
+            // Use requestAnimationFrame to ensure DOM is updated
+            requestAnimationFrame(() => {
+                scrollToLastMessage();
+            });
+        }
+        
+        // Update previous length
+        prevMessageLengthRef.current = currentLength;
+    }, [windowData.messages]);
+
+    // Initial scroll on mount if flag is set
+    useEffect(() => {
+        if (windowData.scrollToBottom) {
+            requestAnimationFrame(() => {
+                scrollToLastMessage();
+            });
+        }
+    }, []);
 
     const getResponse = async (message) => {
         const provider = allOperators[windowData.operator].provider;
@@ -221,7 +261,6 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
     const handleBlockClick = async (messageIndex, blockContent) => {
         if (isHandlingBlockClick) return;
         await setIsHandlingBlockClick(true);
-        console.log('handleBlockClick', messageIndex, blockContent);
         const messages = windowData.messages;
         // Get all messages up to the clicked message
         const previousMessages = messages.slice(0, messageIndex);
@@ -259,7 +298,6 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
         };
 
         lastText = findLastText(blockContent) || "";
-        console.log('lastText', lastText);
         // Find the position of the clicked block in the message
         const contentBeforeBlock = clickedMessage.content.split(lastText)[0];
         
