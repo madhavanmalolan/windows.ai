@@ -18,11 +18,34 @@ export async function POST(req) {
           })),
           { role: 'user', content: message }
         ],
-        //format: "text",
         max_tokens: 4096,
         system: "Always format your responses in markdown. Use code blocks with language identifiers when sharing code. Use proper headings, lists, and other markdown formatting for better readability."
       },
       responseExtractor: (data) => data.content[0].text
+    },
+    'gemini-pro': {
+      url: 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: {
+        contents: [
+          ...history.map(msg => ({
+            role: msg.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: msg.content }]
+          })),
+          { 
+            role: 'user',
+            parts: [{ text: message }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 4096,
+        },
+      },
+      queryParams: `?key=${apiKey}`,
+      responseExtractor: (data) => data.candidates[0].content.parts[0].text
     },
     'gpt-4': {
       url: 'https://api.openai.com/v1/chat/completions',
@@ -127,28 +150,28 @@ export async function POST(req) {
   }
 
   try {
-    console.log('Making request to Claude API with config:', {
-      url: config.url,
-      headers: { ...config.headers, 'x-api-key': '***' }, // Hide actual API key
+    console.log('Making request to API with config:', {
+      url: config.url + (config.queryParams || ''),
+      headers: { ...config.headers },
       body: config.body
     });
 
-    const response = await fetch(config.url, {
+    const response = await fetch(config.url + (config.queryParams || ''), {
       method: 'POST',
       headers: config.headers,
       body: JSON.stringify(config.body)
     });
 
-    console.log('Claude API response status:', response.status);
+    console.log('API response status:', response.status);
     
     if (!response.ok) {
       const errorData = await response.json().catch(e => ({ error: 'Failed to parse error response' }));
-      console.error('Claude API error response:', errorData);
+      console.error('API error response:', errorData);
       throw new Error(`API request failed with status ${response.status}: ${JSON.stringify(errorData)}`);
     }
 
     const data = await response.json();
-    console.log('Claude API response data structure:', Object.keys(data));
+    console.log('API response data structure:', Object.keys(data));
     console.log(JSON.stringify(data));  
     
     const result = config.responseExtractor(data);

@@ -7,8 +7,8 @@ export default function StartBar({
   currentWorkspace,
   onWorkspaceChange,
   onWorkspaceDelete,
-  windows = [],
-  activeWindowId = null,
+  windows,
+  activeWindowId,
   onWindowClick
 }) {
   const [time, setTime] = useState('')
@@ -56,16 +56,14 @@ export default function StartBar({
 
   // Get window title
   const getWindowTitle = (window) => {
-    switch (window.type) {
-      case 'chat':
-        return 'Chat'
-      case 'workspace':
-        return 'New Workspace'
-      case 'settings':
-        return 'System Settings'
-      default:
-        return 'Window'
+    if (window.type === 'chat') {
+      return window.windowData.title || 'Chat'
+    } else if (window.type === 'workspace') {
+      return 'New Workspace'
+    } else if (window.type === 'settings') {
+      return 'System Settings'
     }
+    return 'Window'
   }
 
   // Get window icon

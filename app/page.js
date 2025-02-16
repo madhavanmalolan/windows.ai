@@ -1,9 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { v4 as uuidv4 } from 'uuid';
-import FloatingActionButton from '../components/FloatingActionButton';
-import Window from '../components/Window';
 import Chat from '@/components/Chat';
 import SystemSettings from '@/components/SystemSettings';
 import NewWorkspaceCreation from '@/components/NewWorkspaceCreation';
@@ -54,6 +51,10 @@ export default function App() {
       ...prev,
       [workspaceId]: [...(prev[workspaceId] || []), newWindow]
     }));
+    // Update localStorage
+    const prevWindows = JSON.parse(localStorage.getItem('windowsByWorkspace') || '{}');
+    const allWindows = { ...prevWindows, [workspaceId]: [...(prevWindows[workspaceId] || []), newWindow] };
+    localStorage.setItem('windowsByWorkspace', JSON.stringify(allWindows)); 
 
     // Set focus to new window
     bringToFront(newWindow.id);
@@ -98,7 +99,11 @@ export default function App() {
     setWindowsByWorkspace(prev => ({
       ...prev,
       [currentWorkspace.id]: prev[currentWorkspace.id].filter(w => w.id !== windowId)
-    }));
+    }))
+      // Update localStorage
+      const prevWindows = JSON.parse(localStorage.getItem('windowsByWorkspace') || '{}');
+    const allWindows = { ...prevWindows, [currentWorkspace.id]: prevWindows[currentWorkspace.id].filter(w => w.id !== windowId) };
+    localStorage.setItem('windowsByWorkspace', JSON.stringify(allWindows));
   }, [currentWorkspace]);
 
   // Handle window click
@@ -263,6 +268,8 @@ export default function App() {
       [currentWorkspace.id]: [...(storedWindows[currentWorkspace.id] || []), newWindow]
     };
     localStorage.setItem('windowsByWorkspace', JSON.stringify(updatedStoredWindows));
+    setActiveWindow(newWindow.id);
+    bringToFront(newWindow.id);
   };
 
   const handleWindowDataChange = (windowId, newData) => {
@@ -504,6 +511,18 @@ export default function App() {
     };
   }, []);
 
+  // Add this helper function
+  const getWindowTitle = (window) => {
+    if (window.type === 'chat') {
+      return window.windowData.title || 'Chat'
+    } else if (window.type === 'workspace') {
+      return 'New Workspace'
+    } else if (window.type === 'settings') {
+      return 'System Settings'
+    }
+    return 'Window'
+  }
+
   return (
     <div className="min-h-screen bg-[#008080] win98">
       <div className="flex flex-wrap gap-4 p-4">
@@ -518,28 +537,31 @@ export default function App() {
               height: window.windowData.size?.height || 400,
               zIndex: windowZIndexes[window.id] || 0
             }}
-            onMouseDown={(e) => handleMouseDown(e, window.id)}
+            onMouseDown={(e) => {
+              // Always bring window to front when clicked anywhere
+              bringToFront(window.id)
+              
+              // Only handle drag if clicking the title bar
+              if (e.target.closest('.window-handle')) {
+                handleMouseDown(e, window.id)
+              }
+            }}
           >
             <div className={`win98-window-header window-handle cursor-move select-none ${activeWindowId === window.id ? 'active' : ''}`}>
               <span className="win98-window-title">
-                {window.type === 'chat' ? 'Chat' : window.type === 'workspace' ? 'New Workspace' : 'System Settings'}
+                {getWindowTitle(window)}
               </span>
               <button 
-                onClick={() => handleCloseWindow(window.id)}
+                onClick={(e) => {
+                  e.stopPropagation() // Prevent window activation when closing
+                  handleCloseWindow(window.id)
+                }}
                 className="win98-close-button"
               >
                 ×
               </button>
             </div>
-            <div 
-              className="flex-1 overflow-hidden bg-[#c0c0c0] p-2"
-              onMouseDown={(e) => {
-                // Prevent event from bubbling to parent
-                e.stopPropagation()
-                // Still bring window to front
-                bringToFront(window.id)
-              }}
-            >
+            <div className="flex-1 overflow-hidden bg-[#c0c0c0] p-2">
               {window.type === 'chat' ? (
                 <Chat
                   windowData={window.windowData}

@@ -38,7 +38,8 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
         'gpt-4': { name: 'OpenAI 4.0', provider: 'openai' },
         'deepseek-r1': { name: 'DeepSeek r1', provider: 'deepseek' },
         'deepseek-v3': { name: 'DeepSeek v3', provider: 'deepseek' },
-        'llama-3.3': { name: 'Llama3.3', provider: 'groq' }
+        'llama-3.3': { name: 'Llama3.3', provider: 'groq' },
+        'gemini-pro': { name: 'Gemini Pro', provider: 'gemini' },
     }
 
     // Filter operators based on available API keys
@@ -172,6 +173,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
     }
 
     const handleSend = async () => {
+        console.log("handleSend", inputValue)
         if (inputValue.trim() && !isWaitingForResponse) {
             const userMessage = {
                 role: 'user',
@@ -187,6 +189,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
             if (textareaRef.current) {
                 textareaRef.current.style.height = 'auto'
             }
+
 
             try {
                 // Get response from the API
@@ -302,6 +305,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
         // Create new history with truncated message
         const newHistory = [...previousMessages, truncatedMessage];
         
+        console.log("new history", newHistory);
         // Create new window with the modified history
         onNewWindow('chat', {
             operator: windowData.operator,
@@ -309,6 +313,9 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
         });
         await setIsHandlingBlockClick(false);
     };
+
+    // Initialize messages if they don't exist
+    const messages = windowData.messages || []
 
     return (
         <div 
@@ -341,7 +348,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
                             className={`${message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}`}
                         >
                             {message.role === 'user' ? (
-                                <div className="bg-black text-white rounded-2xl px-4 py-2 max-w-[80%]">
+                                <div className="bg-black text-white px-4 py-2 max-w-[80%] win98-message-bubble">
                                     <p className="whitespace-pre-wrap">{message.content}</p>
                                 </div>
                             ) : (
@@ -353,7 +360,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
                                                 const content = String(children).replace(/\n$/, '')
                                                 return !inline && match ? (
                                                     <div
-                                                        className="group cursor-pointer hover:bg-gray-100 rounded-lg p-1"
+                                                        className="group cursor-pointer win98-message-regular rounded-lg p-1"
                                                         onClick={() => handleBlockClick(messageIndex, children)}
                                                     >
                                                         <SyntaxHighlighter
@@ -383,7 +390,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
                                                 const content = String(children)
                                                 return (
                                                     <div
-                                                        className="group cursor-pointer hover:bg-gray-100 rounded-lg p-1"
+                                                        className="group cursor-pointer win98-message-regular rounded-lg p-1"
                                                         onClick={() => handleBlockClick(messageIndex, children)}
                                                     >
                                                         <p {...props} className="my-2">{children}</p>
@@ -394,7 +401,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
                                                 const content = String(children)
                                                 return (
                                                     <div
-                                                        className="group cursor-pointer hover:bg-gray-100 rounded-lg p-1"
+                                                        className="group cursor-pointer win98-message-regular rounded-lg p-1"
                                                         onClick={() => handleBlockClick(messageIndex, children)}
                                                     >
                                                         <h1 {...props} className="text-2xl font-bold mt-6 mb-4">{children}</h1>
@@ -405,7 +412,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
                                                 const content = String(children)
                                                 return (
                                                     <div
-                                                        className="group cursor-pointer hover:bg-gray-100 rounded-lg p-1"
+                                                        className="group cursor-pointer win98-message-regular rounded-lg p-1"
                                                         onClick={() => handleBlockClick(messageIndex, children)}
                                                     >
                                                         <h2 {...props} className="text-xl font-bold mt-5 mb-3">{children}</h2>
@@ -416,7 +423,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
                                                 const content = String(children)
                                                 return (
                                                     <div
-                                                        className="group cursor-pointer hover:bg-gray-100 rounded-lg p-1"
+                                                        className="group cursor-pointer win98-message-regular rounded-lg p-1"
                                                         onClick={() => handleBlockClick(messageIndex, children)}
                                                     >
                                                         <h3 {...props} className="text-lg font-bold mt-4 mb-2">{children}</h3>
@@ -466,7 +473,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
                                                 }
                                                 return (
                                                     <div
-                                                        className="group cursor-pointer hover:bg-gray-100 rounded-lg p-1"
+                                                        className="group cursor-pointer win98-message-regular rounded-lg p-1"
                                                         onClick={() => handleBlockClick(messageIndex, children)}
                                                     >
                                                         <li {...props} className="my-2">{children}</li>
@@ -477,7 +484,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
                                                 const content = String(children)
                                                 return (
                                                     <div
-                                                        className="group cursor-pointer hover:bg-gray-100 rounded-lg p-1"
+                                                        className="group cursor-pointer win98-message-regular rounded-lg p-1"
                                                         onClick={() => handleBlockClick(messageIndex, children)}
                                                     >
                                                         <blockquote {...props} className="border-l-4 border-gray-300 pl-4 my-4 italic">{children}</blockquote>
@@ -488,7 +495,7 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
                                                 const content = String(children)
                                                 return (
                                                     <div
-                                                        className="group cursor-pointer hover:bg-gray-100 rounded-lg p-1"
+                                                        className="group cursor-pointer win98-message-regular rounded-lg p-1"
                                                         onClick={() => handleBlockClick(messageIndex, message.content)}
                                                     >
                                                         <table {...props} className="min-w-full divide-y divide-gray-300 my-4">{children}</table>

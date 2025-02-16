@@ -62,7 +62,7 @@ export default function SystemSettings({ windowData, onWindowDataChange }) {
               <span className="text-sm text-gray-500">OpenAI API Key</span>
               <input 
                 type="password"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-600 focus:ring-gray-600 text-sm px-4 py-3 text-black"
+                className="mt-1 block w-full win98-input"
                 placeholder="sk-..."
                 value={windowData?.apiKeys?.openai || ''}
                 onChange={(e) => handleApiKeyChange('openai', e.target.value)}
@@ -74,7 +74,7 @@ export default function SystemSettings({ windowData, onWindowDataChange }) {
               <span className="text-sm text-gray-500">Anthropic API Key</span>
               <input 
                 type="password"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-600 focus:ring-gray-600 text-sm px-4 py-3 text-black"
+                className="mt-1 block w-full win98-input"
                 placeholder="sk-ant-..."
                 value={windowData?.apiKeys?.anthropic || ''}
                 onChange={(e) => handleApiKeyChange('anthropic', e.target.value)}
@@ -83,10 +83,22 @@ export default function SystemSettings({ windowData, onWindowDataChange }) {
             </label>
 
             <label className="block">
+              <span className="text-sm text-gray-500">Gemini API Key</span>
+              <input 
+                type="password"
+                className="mt-1 block w-full win98-input"
+                placeholder="AIza..."
+                value={windowData?.apiKeys?.gemini || ''}
+                onChange={(e) => handleApiKeyChange('gemini', e.target.value)}
+              />
+              <span className="text-xs text-gray-400 mt-1">Used for Google's Gemini models</span>
+            </label>
+
+            <label className="block">
               <span className="text-sm text-gray-500">DeepSeek API Key</span>
               <input 
                 type="password"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-600 focus:ring-gray-600 text-sm px-4 py-3 text-black"
+                className="mt-1 block w-full win98-input"
                 placeholder="sk-ds-..."
                 value={windowData?.apiKeys?.deepseek || ''}
                 onChange={(e) => handleApiKeyChange('deepseek', e.target.value)}
@@ -98,7 +110,7 @@ export default function SystemSettings({ windowData, onWindowDataChange }) {
               <span className="text-sm text-gray-500">Groq API Key</span>
               <input 
                 type="password"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-600 focus:ring-gray-600 text-sm px-4 py-3 text-black"
+                className="mt-1 block w-full win98-input"
                 placeholder="gsk_..."
                 value={windowData?.apiKeys?.groq || ''}
                 onChange={(e) => handleApiKeyChange('groq', e.target.value)}
@@ -114,7 +126,7 @@ export default function SystemSettings({ windowData, onWindowDataChange }) {
           )}
           <button
             onClick={handleSave}
-            className="w-full bg-black text-white rounded-md py-2 px-4 hover:bg-gray-800 transition-colors"
+            className="w-full win98-button-active"
           >
             Save Settings
           </button>
