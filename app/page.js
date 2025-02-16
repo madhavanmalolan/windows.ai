@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid';
 import FloatingActionButton from '../components/FloatingActionButton';
 import Window from '../components/Window';
 import Chat from '@/components/Chat';
 import SystemSettings from '@/components/SystemSettings';
 import NewWorkspaceCreation from '@/components/NewWorkspaceCreation';
+import StartBar from '@/components/StartBar'
+import '@/styles/win98.css';
 
 // Create a global click lock
 const globalClickLock = {
@@ -30,6 +32,9 @@ export default function App() {
   const [currentWorkspace, setCurrentWorkspace] = useState(null);
   const [windowsByWorkspace, setWindowsByWorkspace] = useState({});
   const currentPositionRef = useRef({ x: 0, y: 0 });
+  const [activeWindowId, setActiveWindowId] = useState(null);
+  const [windowZIndexes, setWindowZIndexes] = useState({});
+  const nextZIndexRef = useRef(1);
 
   const getDefaultDimensions = () => {
     if (typeof window === 'undefined') return { width: '360px', height: '480px' }
@@ -198,16 +203,61 @@ export default function App() {
     setWindows(prev => prev.filter(window => window.id !== windowId));
   };
 
-  const handleMouseDown = (e, windowId) => {
+  const bringToFront = useCallback((windowId) => {
+    setActiveWindowId(windowId);
+    setWindowZIndexes(prev => ({
+      ...prev,
+      [windowId]: nextZIndexRef.current++
+    }));
+  }, []);
+
+  const handleMouseDown = useCallback((e, windowId) => {
+    // Always bring window to front when clicked anywhere
+    bringToFront(windowId);
+
+    // Handle dragging only if clicking the title bar
     if (e.target.closest('.window-handle')) {
-      setDragging(windowId);
-      const window = windows.find(w => w.id === windowId);
-      dragStartPos.current = {
-        x: e.clientX - (window.windowData.position?.x || 0),
-        y: e.clientY - (window.windowData.position?.y || 0)
+      e.preventDefault();
+      document.body.style.userSelect = 'none';
+      
+      const windowElement = e.target.closest('.window-container');
+      const rect = windowElement.getBoundingClientRect();
+      
+      const startX = e.clientX - rect.left;
+      const startY = e.clientY - rect.top;
+      
+      const handleMouseMove = (moveEvent) => {
+        const x = moveEvent.clientX - startX;
+        const y = moveEvent.clientY - startY;
+        
+        if (!currentWorkspace) return;
+        
+        setWindowsByWorkspace(prev => ({
+          ...prev,
+          [currentWorkspace.id]: prev[currentWorkspace.id].map(window => 
+            window.id === windowId
+              ? {
+                  ...window,
+                  windowData: {
+                    ...window.windowData,
+                    position: { x, y }
+                  }
+                }
+              : window
+          )
+        }));
       };
+      
+      const handleMouseUp = () => {
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+      
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
     }
-  };
+  }, [bringToFront, currentWorkspace]);
 
   const handleMouseMove = (e) => {
     if (dragging !== null) {
@@ -476,82 +526,52 @@ export default function App() {
     });
   };
 
-  return (
-    <div className="min-h-screen bg-gray-800">
-      {/* Workspace Controls */}
-      {workspaces.length > 0 && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-          <select
-            value={currentWorkspace?.id || ''}
-            onChange={(e) => {
-              const workspace = workspaces.find(w => w.id === Number(e.target.value))
-              handleWorkspaceChange(workspace)
-            }}
-            className="border rounded-lg px-4 py-2 bg-white text-black focus:outline-none focus:ring-2 focus:ring-black shadow-lg min-w-[200px]"
-          >
-            {workspaces.map(workspace => (
-              <option key={workspace.id} value={workspace.id}>
-                {workspace.name}
-              </option>
-            ))}
-          </select>
-          
-          {/* Delete Workspace Button */}
-          <button
-            onClick={handleWorkspaceDelete}
-            className="p-2 bg-white hover:bg-red-50 text-red-600 rounded-lg shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500"
-            title="Delete Workspace"
-            disabled={currentWorkspace?.name === 'Home'}
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
-              />
-            </svg>
-          </button>
-        </div>
-      )}
+  // Handle window click from taskbar
+  const handleWindowClick = useCallback((windowId) => {
+    bringToFront(windowId);
+  }, [bringToFront]);
 
-      {/* Windows Container */}
+  return (
+    <div className="min-h-screen bg-[#008080] win98">
       <div className="flex flex-wrap gap-4 p-4">
         {currentWindows.map(window => (
           <div 
             key={window.id}
             data-window-id={window.id}
-            className="absolute overflow-hidden flex flex-col resize window-container rounded-tl-xl rounded-tr-xl rounded-bl-xl shadow-[0_0_15px_rgba(0,0,0,0.2)] hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] transition-all duration-200"
+            className="win98-window absolute overflow-hidden flex flex-col resize window-container"
             style={{
               transform: `translate(${window.windowData.position?.x || 0}px, ${window.windowData.position?.y || 0}px)`,
               width: window.windowData.size?.width || 600,
               height: window.windowData.size?.height || 400,
+              zIndex: windowZIndexes[window.id] || 0
             }}
             onMouseDown={(e) => handleMouseDown(e, window.id)}
-            onResize={(e) => alert}
           >
-            <div className="window-handle px-4 py-2 text-sm font-bold border-b flex justify-between items-center cursor-move transition-colors duration-200 bg-black text-white">
-              <span>{window.type === 'chat' ? 'Chat' : window.type === 'workspace' ? 'New Workspace' : 'System Settings'}</span>
+            <div className={`win98-window-header window-handle cursor-move select-none ${activeWindowId === window.id ? 'active' : ''}`}>
+              <span className="win98-window-title">
+                {window.type === 'chat' ? 'Chat' : window.type === 'workspace' ? 'New Workspace' : 'System Settings'}
+              </span>
               <button 
                 onClick={() => handleCloseWindow(window.id)}
-                className="w-8 h-8 flex items-center justify-center hover:bg-gray-700 rounded-full transition-colors duration-150 text-white"
+                className="win98-close-button"
               >
-                <span className="text-xl leading-none select-none">×</span>
+                ×
               </button>
             </div>
-            <div className="flex-1 overflow-hidden bg-white">
+            <div 
+              className="flex-1 overflow-hidden bg-[#c0c0c0] p-2"
+              onMouseDown={(e) => {
+                // Prevent event from bubbling to parent
+                e.stopPropagation()
+                // Still bring window to front
+                bringToFront(window.id)
+              }}
+            >
               {window.type === 'chat' ? (
                 <Chat
                   windowData={window.windowData}
                   onWindowDataChange={(newData) => handleWindowDataChange(window.id, newData)}
                   onNewWindow={handleNewWindow}
-                  onBlockClick={handleBlockClick}
                 />
               ) : window.type === 'workspace' ? (
                 <NewWorkspaceCreation
@@ -568,11 +588,19 @@ export default function App() {
             </div>
           </div>
         ))}
-        <FloatingActionButton 
-          onNewChat={handleNewChat}
-          onNewWorkspace={handleNewWorkspace}
-        />
       </div>
+      
+      <StartBar 
+        onNewChat={handleNewChat}
+        onNewWorkspace={handleNewWorkspace}
+        workspaces={workspaces}
+        currentWorkspace={currentWorkspace}
+        onWorkspaceChange={handleWorkspaceChange}
+        onWorkspaceDelete={handleWorkspaceDelete}
+        windows={currentWindows}
+        activeWindowId={activeWindowId}
+        onWindowClick={handleWindowClick}
+      />
     </div>
   );
 }
