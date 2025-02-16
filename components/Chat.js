@@ -227,14 +227,6 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
             ]
         },
         {
-            label: 'Clear',
-            menu: [
-                { label: 'Clear All Messages', onClick: () => console.log('Clear all messages') },
-                { label: 'Clear User Messages', onClick: () => console.log('Clear user messages') },
-                { label: 'Clear Assistant Messages', onClick: () => console.log('Clear assistant messages') }
-            ]
-        },
-        {
             label: 'Export',
             menu: [
                 { label: 'Export as Text', onClick: () => console.log('Export as text') },
@@ -319,13 +311,23 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
     };
 
     return (
-        <div className="flex flex-col h-full">
+        <div 
+            className="flex flex-col h-full"
+            onMouseDown={(e) => {
+                // Stop propagation to prevent the window drag behavior
+                e.stopPropagation()
+            }}
+        >
             <Toolbar items={toolbarItems} />
 
             {/* Messages Area */}
             <div 
                 ref={messagesContainerRef}
                 className="flex-1 overflow-y-auto p-4 space-y-6"
+                onMouseDown={(e) => {
+                    // Stop propagation to prevent the window drag behavior
+                    e.stopPropagation()
+                }}
             >
                 {windowData.messages.map((message, messageIndex) => {
                     // Create a unique key using timestamp if it exists, or generate one
@@ -510,26 +512,39 @@ export default function Chat({ windowData, onWindowDataChange, onNewWindow }) {
             </div>
 
             {/* Input Area */}
-            <div className="border-t p-4 flex items-end gap-2">
-                <div className="flex-1 min-h-[44px] flex items-center bg-gray-100 rounded-lg">
+            <div className="border-t p-4 flex items-end gap-2"
+                onMouseDown={(e) => {
+                    // Stop propagation to prevent the window drag behavior
+                    e.stopPropagation()
+                }}
+            >
+                <div className="flex-1 min-h-[44px] flex items-center">
                     <textarea
                         ref={textareaRef}
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder={isWaitingForResponse ? "Waiting for response..." : "Type a message..."}
-                        className="flex-1 bg-transparent border-none resize-none max-h-[200px] p-3 focus:outline-none text-black placeholder:text-gray-500"
+                        className="flex-1 bg-transparent border-none resize-none max-h-[200px] p-3 focus:outline-none text-black placeholder:text-gray-500 win98-input" 
                         rows={1}
                         disabled={isWaitingForResponse}
+                        onMouseDown={(e) => {
+                            // Stop propagation to prevent the window drag behavior
+                            e.stopPropagation()
+                        }}
                     />
                 </div>
                 <button
                     onClick={handleSend}
                     disabled={!inputValue.trim() || isWaitingForResponse}
                     className={`p-3 rounded-lg ${inputValue.trim() && !isWaitingForResponse
-                            ? 'bg-black text-white hover:bg-gray-800'
-                            : 'bg-gray-100 text-gray-400'
+                            ? 'bg-black text-white hover:bg-gray-800 win98-button-active'
+                            : 'bg-gray-100 text-gray-400 win98-button-disabled'
                         }`}
+                    onMouseDown={(e) => {
+                        // Stop propagation to prevent the window drag behavior
+                        e.stopPropagation()
+                    }}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

@@ -37,58 +37,219 @@
   font-size: 11px;
 }
 
-.win98-button {
-  border: none;
+.win98-button-active {
+  border: 1px solid #7b7b7b;
   background: #c0c0c0;
-  box-shadow: 
-    inset -1px -1px #0a0a0a,
-    inset 1px 1px #fff,
-    inset -2px -2px grey,
-    inset 2px 2px #dfdfdf;
-  padding: 4px 8px;
-  min-width: 70px;
+  padding: 0 12px;
+  font-family: 'MS Sans Serif', sans-serif;
+  font-size: 11px;
+  color: #000;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff;
+  min-height: 43px;
+  text-align: center;
+  position: relative;
+  border-radius: 0;
+  height: 21px;
+  line-height: 19px;
+  box-sizing: border-box;
+  user-select: none;
 }
+.win98-button-disabled {
+    border: 1px solid #7b7b7b;
+    background: #c0c0c0;
+    padding: 0 12px;
+    font-family: 'MS Sans Serif', sans-serif;
+    font-size: 11px;
+    color: #000;
+    box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff;
+    min-height: 43px;
+    text-align: center;
+    position: relative;
+    border-radius: 0;
+    height: 21px;
+    line-height: 19px;
+    box-sizing: border-box;
+    user-select: none;
+    color: grey;
+    text-shadow: 1px 1px #fff;  
+  }
+
 
 .win98-button:active {
-  box-shadow: 
-    inset 1px 1px #0a0a0a,
-    inset -1px -1px #fff,
-    inset 2px 2px grey,
-    inset -2px -2px #dfdfdf;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a;
+  padding-top: 1px;
+  padding-left: 13px;
+}
+
+.win98-button:focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+.win98-button:disabled,
+.win98-input:disabled {
+  color: grey;
+  text-shadow: 1px 1px #fff;
 }
 
 .win98-select {
-  background: white;
   border: 1px solid #000;
+  background: #fff;
+  padding: 2px 4px;
+  font-family: 'MS Sans Serif', sans-serif;
+  font-size: 11px;
+  color: #000;
   box-shadow: 
-    inset -1px -1px #dfdfdf,
-    inset 1px 1px grey;
-  padding: 2px;
+    inset -1px -1px #fff,
+    inset 1px 1px grey,
+    inset -2px -2px #dfdfdf,
+    inset 2px 2px #0a0a0a;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url('/dropdown-arrow.png');
+  background-repeat: no-repeat;
+  background-position: calc(100% - 4px) center;
+  padding-right: 20px;
+}
+
+.win98-select:focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+.win98-input {
+  border: 1px solid #7b7b7b;
+  background: #fff;
+  padding: 3px 4px;
+  font-family: 'MS Sans Serif', sans-serif;
+  font-size: 11px;
+  color: #000;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #808080;
+  border-radius: 0;
+  box-sizing: border-box;
+  min-height: 43px;
+}
+
+.win98-input:focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+.win98-textarea {
+  border: 1px solid #000;
+  background: #fff;
+  padding: 3px 5px;
+  font-family: 'MS Sans Serif', sans-serif;
+  font-size: 11px;
+  color: #000;
+  box-shadow: 
+    inset -1px -1px #fff,
+    inset 1px 1px grey,
+    inset -2px -2px #dfdfdf,
+    inset 2px 2px #0a0a0a;
+  resize: none;
+}
+
+.win98-textarea:focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+.win98-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  border: 1px solid #000;
+  background: #fff;
+  box-shadow: 
+    inset -1px -1px #fff,
+    inset 1px 1px grey,
+    inset -2px -2px #dfdfdf,
+    inset 2px 2px #0a0a0a;
+  position: relative;
+  margin: 3px;
+}
+
+.win98-checkbox:checked:after {
+  content: '✓';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+}
+
+.win98-checkbox:focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+.win98-radio {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border: 1px solid #000;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 
+    inset -1px -1px #fff,
+    inset 1px 1px grey,
+    inset -2px -2px #dfdfdf,
+    inset 2px 2px #0a0a0a;
+  position: relative;
+  margin: 3px;
+}
+
+.win98-radio:checked:after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  background: #000;
+  border-radius: 50%;
+}
+
+.win98-radio:focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
 }
 
 .win98-close-button {
+  width: 21px;
+  height: 21px;
+  border: 1px solid #7b7b7b;
   background: #c0c0c0;
-  border: 1px solid #000;
-  box-shadow: 
-    inset -1px -1px #0a0a0a,
-    inset 1px 1px #fff,
-    inset -2px -2px grey,
-    inset 2px 2px #dfdfdf;
-  width: 16px;
-  height: 14px;
-  font-size: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: inset -2px -2px #0a0a0a, inset 2px 2px #fff;
+  position: relative;
+  font-family: 'MS Sans Serif', sans-serif;
+  font-size: 14px;
+  line-height: 19px;
+  text-align: center;
+  padding: 0;
   margin-left: 2px;
+  font-weight: bold;
+  color: #000;
+  user-select: none;
 }
 
 .win98-close-button:active {
-  box-shadow: 
-    inset 1px 1px #0a0a0a,
-    inset -1px -1px #fff,
-    inset 2px 2px grey,
-    inset -2px -2px #dfdfdf;
+  box-shadow: inset 1px 1px #0a0a0a, inset -1px -1px #fff;
+  padding-top: 1px;
+  padding-left: 1px;
+}
+
+.win98-close-button:focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+.win98-close-button:hover {
+  background: #c0c0c0;
 }
 
 .win98-taskbar {
@@ -163,4 +324,105 @@
 
 .win98-taskbar-button:hover:not(.active) {
   background: #d4d0c8;
+}
+
+/* Toolbar */
+.win98-toolbar {
+  background: #c0c0c0;
+  border-bottom: 1px solid #7b7b7b;
+  border-right: 1px solid #7b7b7b;
+  padding: 2px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  box-shadow: inset 1px 1px #fff;
+  gap: 2px;
+}
+
+/* Toolbar buttons */
+.win98-toolbar-button {
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 2px 6px;
+  font-family: 'MS Sans Serif', sans-serif;
+  font-size: 11px;
+  color: #000;
+  height: 19px;
+  line-height: 13px;
+  user-select: none;
+  margin: 0 2px;
+}
+
+.win98-toolbar-button:hover {
+  border: 1px solid #7b7b7b;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff;
+}
+
+.win98-toolbar-button.active {
+  border: 1px solid #7b7b7b;
+  background: #c0c0c0;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a;
+}
+
+/* Menu dropdown */
+.win98-menu {
+  position: absolute;
+  top: 100%;
+  left: -2px;
+  background: #c0c0c0;
+  border: 1px solid #000;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff;
+  padding: 2px;
+  min-width: 150px;
+  z-index: 1000;
+  margin-top: 2px;
+}
+
+.win98-menu-item {
+  margin: 2px;
+  padding: 3px 16px;
+  font-family: 'MS Sans Serif', sans-serif;
+  font-size: 11px;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  white-space: nowrap;
+  user-select: none;
+  width: calc(100% - 4px);
+}
+
+.win98-menu-item:hover {
+  background: #000080;
+  color: #fff;
+}
+
+.win98-menu-separator {
+  height: 1px;
+  background: #7b7b7b;
+  margin: 4px 2px;
+  box-shadow: 0 1px #fff;
+}
+
+.win98-menu-item.has-submenu {
+  padding-right: 24px;
+  position: relative;
+}
+
+.win98-menu-item.has-submenu:after {
+  content: '►';
+  position: absolute;
+  right: 8px;
+  font-size: 8px;
+}
+
+.win98-menu-item.checked {
+  position: relative;
+  padding-left: 24px;
+}
+
+.win98-menu-item.checked:before {
+  content: '✓';
+  position: absolute;
+  left: 8px;
 } 

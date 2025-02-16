@@ -17,6 +17,95 @@ const globalClickLock = {
 };
 
 export default function App() {
+  const [workspaces, setWorkspaces] = useState([{ id: 1, name: 'Home' }]);
+  const [currentWorkspace, setCurrentWorkspace] = useState(workspaces[0]);
+  const [windowsByWorkspace, setWindowsByWorkspace] = useState({});
+  const [activeWindowId, setActiveWindowId] = useState(null);
+  const [windowZIndexes, setWindowZIndexes] = useState({});
+  const nextZIndexRef = useRef(1);
+
+  // Compute current windows first
+  const currentWindows = currentWorkspace 
+    ? windowsByWorkspace[currentWorkspace.id] || []
+    : [];
+
+  // Bring window to front
+  const bringToFront = useCallback((windowId) => {
+    setActiveWindowId(windowId);
+    setWindowZIndexes(prev => ({
+      ...prev,
+      [windowId]: nextZIndexRef.current++
+    }));
+  }, []);
+
+  // Create new window with focus
+  const createWindow = useCallback((type, workspaceId) => {
+    const newWindow = {
+      id: Date.now(),
+      type,
+      windowData: {
+        position: { x: 20, y: 20 },
+        size: { width: 600, height: 400 },
+        messages: [] // Initialize messages array for chat windows
+      }
+    };
+
+    setWindowsByWorkspace(prev => ({
+      ...prev,
+      [workspaceId]: [...(prev[workspaceId] || []), newWindow]
+    }));
+
+    // Set focus to new window
+    bringToFront(newWindow.id);
+  }, [bringToFront]);
+
+  // Handle new chat window
+  const handleNewChat = useCallback(() => {
+    if (!currentWorkspace) return;
+    createWindow('chat', currentWorkspace.id);
+  }, [currentWorkspace, createWindow]);
+
+  // Handle new workspace window
+  const handleNewWorkspace = useCallback(() => {
+    if (!currentWorkspace) return;
+    createWindow('workspace', currentWorkspace.id);
+  }, [currentWorkspace, createWindow]);
+
+  // Handle new settings window
+  const handleNewSettings = useCallback(() => {
+    if (!currentWorkspace) return;
+    createWindow('settings', currentWorkspace.id);
+  }, [currentWorkspace, createWindow]);
+
+  // Handle workspace creation
+  const handleWorkspaceCreated = useCallback((name) => {
+    const newWorkspace = {
+      id: Date.now(),
+      name
+    };
+    setWorkspaces(prev => [...prev, newWorkspace]);
+    setCurrentWorkspace(newWorkspace);
+    // Close the workspace creation window after creation
+    const workspaceWindow = currentWindows.find(w => w.type === 'workspace');
+    if (workspaceWindow) {
+      handleCloseWindow(workspaceWindow.id);
+    }
+  }, [currentWindows]);
+
+  // Handle close window
+  const handleCloseWindow = useCallback((windowId) => {
+    if (!currentWorkspace) return;
+    setWindowsByWorkspace(prev => ({
+      ...prev,
+      [currentWorkspace.id]: prev[currentWorkspace.id].filter(w => w.id !== windowId)
+    }));
+  }, [currentWorkspace]);
+
+  // Handle window click
+  const handleWindowClick = useCallback((windowId) => {
+    bringToFront(windowId);
+  }, [bringToFront]);
+
   const [windows, setWindows] = useState([]);
   const [activeWindow, setActiveWindow] = useState(null);
   const [nextId, setNextId] = useState(Date.now());
@@ -28,13 +117,7 @@ export default function App() {
   const lastProcessedClick = useRef({ messageIndex: null, content: null, timestamp: 0 });
   const dragWindowRef = useRef(null);
   const animationFrameRef = useRef(null);
-  const [workspaces, setWorkspaces] = useState([]);
-  const [currentWorkspace, setCurrentWorkspace] = useState(null);
-  const [windowsByWorkspace, setWindowsByWorkspace] = useState({});
-  const currentPositionRef = useRef({ x: 0, y: 0 });
-  const [activeWindowId, setActiveWindowId] = useState(null);
-  const [windowZIndexes, setWindowZIndexes] = useState({});
-  const nextZIndexRef = useRef(1);
+  const [currentPositionRef] = useState({ x: 0, y: 0 });
 
   const getDefaultDimensions = () => {
     if (typeof window === 'undefined') return { width: '360px', height: '480px' }
@@ -203,13 +286,47 @@ export default function App() {
     setWindows(prev => prev.filter(window => window.id !== windowId));
   };
 
-  const bringToFront = useCallback((windowId) => {
-    setActiveWindowId(windowId);
-    setWindowZIndexes(prev => ({
-      ...prev,
-      [windowId]: nextZIndexRef.current++
-    }));
-  }, []);
+  const handleWorkspaceChange = (workspace) => {
+    setCurrentWorkspace(workspace);
+    localStorage.setItem('currentWorkspaceId', workspace.id.toString());
+  };
+
+  // Handle workspace deletion
+  const handleWorkspaceDelete = () => {
+    if (!currentWorkspace) return;
+    if (currentWorkspace.name === 'Home') {
+      alert('Cannot delete Home workspace');
+      return;
+    }
+
+    const confirmed = window.confirm(`Are you sure you want to delete workspace "${currentWorkspace.name}"?`);
+    if (!confirmed) return;
+
+    setWorkspaces(prev => {
+      const updatedWorkspaces = prev.filter(w => w.id !== currentWorkspace.id);
+      localStorage.setItem('workspaces', JSON.stringify(updatedWorkspaces));
+      return updatedWorkspaces;
+    });
+
+    // Clean up windows for deleted workspace
+    setWindowsByWorkspace(prev => {
+      const { [currentWorkspace.id]: deleted, ...rest } = prev;
+      localStorage.setItem('windowsByWorkspace', JSON.stringify(rest));
+      return rest;
+    });
+
+    // Switch to Home workspace
+    const homeWorkspace = workspaces.find(w => w.name === 'Home');
+    setCurrentWorkspace(homeWorkspace);
+    localStorage.setItem('currentWorkspaceId', homeWorkspace.id.toString());
+  };
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Current Workspace:', currentWorkspace);
+    console.log('Windows by Workspace:', windowsByWorkspace);
+    console.log('Current Windows:', currentWindows);
+  }, [currentWorkspace, windowsByWorkspace, currentWindows]);
 
   const handleMouseDown = useCallback((e, windowId) => {
     // Always bring window to front when clicked anywhere
@@ -387,150 +504,6 @@ export default function App() {
     };
   }, []);
 
-  const handleNewWorkspace = () => {
-    handleNewWindow('workspace', {
-      position: { x: 20, y: 20 }
-    });
-  };
-
-  // Handle workspace creation
-  const handleWorkspaceCreated = (newWorkspace) => {
-    setWorkspaces(prev => {
-      const updatedWorkspaces = [...prev, newWorkspace];
-      localStorage.setItem('workspaces', JSON.stringify(updatedWorkspaces));
-      return updatedWorkspaces;
-    });
-
-    // Initialize empty windows array for new workspace
-    setWindowsByWorkspace(prev => {
-      const updatedWindows = {
-        ...prev,
-        [newWorkspace.id]: []
-      };
-      localStorage.setItem('windowsByWorkspace', JSON.stringify(updatedWindows));
-      return updatedWindows;
-    });
-
-    // Set as current workspace
-    setCurrentWorkspace(newWorkspace);
-    localStorage.setItem('currentWorkspaceId', newWorkspace.id.toString());
-  };
-
-  // Handle workspace deletion
-  const handleWorkspaceDelete = () => {
-    if (!currentWorkspace) return;
-    if (currentWorkspace.name === 'Home') {
-      alert('Cannot delete Home workspace');
-      return;
-    }
-
-    const confirmed = window.confirm(`Are you sure you want to delete workspace "${currentWorkspace.name}"?`);
-    if (!confirmed) return;
-
-    setWorkspaces(prev => {
-      const updatedWorkspaces = prev.filter(w => w.id !== currentWorkspace.id);
-      localStorage.setItem('workspaces', JSON.stringify(updatedWorkspaces));
-      return updatedWorkspaces;
-    });
-
-    // Clean up windows for deleted workspace
-    setWindowsByWorkspace(prev => {
-      const { [currentWorkspace.id]: deleted, ...rest } = prev;
-      localStorage.setItem('windowsByWorkspace', JSON.stringify(rest));
-      return rest;
-    });
-
-    // Switch to Home workspace
-    const homeWorkspace = workspaces.find(w => w.name === 'Home');
-    setCurrentWorkspace(homeWorkspace);
-    localStorage.setItem('currentWorkspaceId', homeWorkspace.id.toString());
-  };
-
-  // Handle workspace change
-  const handleWorkspaceChange = (workspace) => {
-    setCurrentWorkspace(workspace);
-    localStorage.setItem('currentWorkspaceId', workspace.id.toString());
-  };
-
-  // Get current workspace's windows
-  const currentWindows = currentWorkspace 
-    ? windowsByWorkspace[currentWorkspace.id] || []
-    : [];
-
-  // Handle window closing
-  const handleCloseWindow = (windowId) => {
-    if (!currentWorkspace) return;
-
-    setWindowsByWorkspace(prev => {
-      const updatedWindows = {
-        ...prev,
-        [currentWorkspace.id]: prev[currentWorkspace.id].filter(w => w.id !== windowId)
-      };
-      
-      // Save to localStorage immediately
-      localStorage.setItem('windowsByWorkspace', JSON.stringify(updatedWindows));
-      
-      return updatedWindows;
-    });
-  };
-
-  // Initialize Home workspace and load saved data
-  useEffect(() => {
-    const savedWorkspaces = JSON.parse(localStorage.getItem('workspaces') || '[]');
-    const savedWindows = JSON.parse(localStorage.getItem('windowsByWorkspace') || '{}');
-    
-    // Check if Home workspace exists
-    let homeWorkspace = savedWorkspaces.find(w => w.name === 'Home');
-    
-    // Create Home workspace if it doesn't exist
-    if (!homeWorkspace) {
-      homeWorkspace = {
-        id: Date.now(),
-        name: 'Home',
-        createdAt: new Date().toISOString()
-      };
-      savedWorkspaces.push(homeWorkspace);
-      
-      // Initialize empty windows array for Home workspace
-      savedWindows[homeWorkspace.id] = [];
-    }
-    
-    // Save everything to localStorage
-    localStorage.setItem('workspaces', JSON.stringify(savedWorkspaces));
-    localStorage.setItem('windowsByWorkspace', JSON.stringify(savedWindows));
-    
-    // Set state
-    setWorkspaces(savedWorkspaces);
-    setWindowsByWorkspace(savedWindows);
-
-    // Set current workspace to Home or saved workspace
-    const savedCurrentWorkspaceId = localStorage.getItem('currentWorkspaceId');
-    const currentWorkspace = savedWorkspaces.find(w => w.id === Number(savedCurrentWorkspaceId)) || homeWorkspace;
-    setCurrentWorkspace(currentWorkspace);
-    localStorage.setItem('currentWorkspaceId', currentWorkspace.id.toString());
-  }, []);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Current Workspace:', currentWorkspace);
-    console.log('Windows by Workspace:', windowsByWorkspace);
-    console.log('Current Windows:', currentWindows);
-  }, [currentWorkspace, windowsByWorkspace, currentWindows]);
-
-  // Handle new chat window
-  const handleNewChat = () => {
-    handleNewWindow('chat', {
-      operator: 'claude-sonnet',
-      messages: [],
-      position: { x: 20, y: 20 }
-    });
-  };
-
-  // Handle window click from taskbar
-  const handleWindowClick = useCallback((windowId) => {
-    bringToFront(windowId);
-  }, [bringToFront]);
-
   return (
     <div className="min-h-screen bg-[#008080] win98">
       <div className="flex flex-wrap gap-4 p-4">
@@ -593,6 +566,7 @@ export default function App() {
       <StartBar 
         onNewChat={handleNewChat}
         onNewWorkspace={handleNewWorkspace}
+        onNewSettings={handleNewSettings}
         workspaces={workspaces}
         currentWorkspace={currentWorkspace}
         onWorkspaceChange={handleWorkspaceChange}
