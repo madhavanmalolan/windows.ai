@@ -24,8 +24,10 @@ export default function NewWorkspaceCreation({ windowData, onWindowDataChange, o
     // Save to localStorage
     localStorage.setItem('workspaces', JSON.stringify(updatedWorkspaces))
     
-    // Notify parent of new workspace
-    onWorkspaceCreated(newWorkspace)
+    // Notify parent of new workspace - make sure parent component expects an object
+    if (onWorkspaceCreated) {
+      onWorkspaceCreated(newWorkspace)
+    }
     
     // Clear input
     setName('')

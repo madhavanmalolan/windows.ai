@@ -77,22 +77,6 @@ export default function App() {
     if (!currentWorkspace) return;
     createWindow('settings', currentWorkspace.id);
   }, [currentWorkspace, createWindow]);
-
-  // Handle workspace creation
-  const handleWorkspaceCreated = useCallback((name) => {
-    const newWorkspace = {
-      id: Date.now(),
-      name
-    };
-    setWorkspaces(prev => [...prev, newWorkspace]);
-    setCurrentWorkspace(newWorkspace);
-    // Close the workspace creation window after creation
-    const workspaceWindow = currentWindows.find(w => w.type === 'workspace');
-    if (workspaceWindow) {
-      handleCloseWindow(workspaceWindow.id);
-    }
-  }, [currentWindows]);
-
   // Handle close window
   const handleCloseWindow = useCallback((windowId) => {
     if (!currentWorkspace) return;
@@ -110,6 +94,25 @@ export default function App() {
   const handleWindowClick = useCallback((windowId) => {
     bringToFront(windowId);
   }, [bringToFront]);
+
+
+  // Handle workspace creation
+  const handleWorkspaceCreated = useCallback((workspace) => {
+    // Now expecting a workspace object instead of just the name
+    setWorkspaces(prev => [...prev, workspace]);
+    setCurrentWorkspace(workspace);
+    
+    // Save to localStorage
+    const existingWorkspaces = JSON.parse(localStorage.getItem('workspaces') || '[]');
+    const updatedWorkspaces = [...existingWorkspaces, workspace];
+    localStorage.setItem('workspaces', JSON.stringify(updatedWorkspaces));
+    
+    // Close the workspace creation window after creation
+    const workspaceWindow = currentWindows.find(w => w.type === 'workspace');
+    if (workspaceWindow) {
+      handleCloseWindow(workspaceWindow.id);
+    }
+  }, [currentWindows, handleCloseWindow]);
 
   const [windows, setWindows] = useState([]);
   const [activeWindow, setActiveWindow] = useState(null);
@@ -340,7 +343,8 @@ export default function App() {
     bringToFront(windowId);
 
     // Handle dragging only if clicking the title bar
-    if (e.target.closest('.window-handle')) {
+    const titleBar = e.target.closest('.window-handle');
+    if (titleBar) {
       e.preventDefault();
       document.body.style.userSelect = 'none';
       

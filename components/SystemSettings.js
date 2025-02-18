@@ -51,7 +51,7 @@ export default function SystemSettings({ windowData, onWindowDataChange }) {
   };
 
   return (
-    <div className="flex flex-col h-full p-6">
+    <div className="flex flex-col h-full p-6 overflow-y-auto">
       <h2 className="text-lg font-semibold mb-6 text-gray-700">System Settings</h2>
       
       <div className="space-y-6">

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 export default function StartBar({ 
   onNewChat, 
   onNewWorkspace, 
+  onNewSettings,
   workspaces, 
   currentWorkspace,
   onWorkspaceChange,
@@ -193,6 +194,7 @@ export default function StartBar({
                   <button 
                     className="w-full text-left px-4 py-1 hover:bg-[#000080] hover:text-white flex items-center gap-2"
                     onClick={() => {
+                      onNewSettings()
                       setIsStartMenuOpen(false)
                     }}
                   >
